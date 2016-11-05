@@ -53,7 +53,7 @@ module Fluent
 
       def configure(conf)
 
-        if conf.key?('time_format')
+        if conf['time_format']
           # Remove the time_format key before the super call
           # so the it does as little as possible as possible
           # (ie. less that we'll have to override).
@@ -95,6 +95,9 @@ module Fluent
             raise ConfigError, "Unknown transform data type."
           end
         end
+     
+        @message_key = conf['message_key']
+        @add_full_message = conf['add_full_message']
 
       end
 
@@ -114,6 +117,7 @@ module Fluent
           if full_message
             record['full_message'] = full_message
           end
+
           yield time, record
         end
 
