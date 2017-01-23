@@ -78,9 +78,7 @@ module Fluent
 
         @maps.each do |elem|
           if elem.is_a?(Array)
-            elem.each do |e|
-              @transforms << [ Regexp.new(e[0]), e[1] ]
-            end
+            @transforms << [ Regexp.new(elem[0]), elem[1] ]
           elsif elem.is_a?(String)
             if elem == 'slashes'
               @transforms << [ Regexp.new("\\\\"), "\\\\\\" ]
