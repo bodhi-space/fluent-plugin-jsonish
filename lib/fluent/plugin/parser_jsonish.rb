@@ -16,12 +16,12 @@ module Fluent
 
       def initialize(time_format)
 
-        if time_format.nil? or time_format.empty?
+        if not time_format.nil? and time_format.empty?
           # Set a reasonable default.
           time_format = 'iso8601'
         end
 
-        if not /%/.match(time_format)
+        if not time_format.nil? and not /%/.match(time_format)
           super(nil)
 
           @parser = Proc.new { |v| Time.method(time_format).call(v) }
