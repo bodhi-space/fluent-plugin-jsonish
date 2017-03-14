@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |gem|
   gem.name          = 'fluent-plugin-jsonish'
-  gem.version       = '0.0.3'
+  gem.version       = '0.0.4'
   gem.authors       = ['Alex Yamauchi']
   gem.email         = ['oss@hotschedules.com']
   gem.homepage      = 'https://github.com/bodhi-space/fluent-plugin-jsonish'
