@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |gem|
   gem.name          = 'fluent-plugin-jsonish'
-  gem.version       = '1.0.0'
+  gem.version       = ENV.key?('RUBYGEM_VERSION') ? ENV['RUBYGEM_VERSION'] : '1.0.1'
   gem.authors       = ['Alex Yamauchi']
   gem.email         = ['oss@hotschedules.com']
   gem.homepage      = 'https://github.com/bodhi-space/fluent-plugin-jsonish'
@@ -15,6 +15,6 @@ Gem::Specification.new do |gem|
   gem.executables   = gem.files.grep(%r{^bin/}) { |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ['lib']
-  gem.signing_key   = File.expand_path('~/certs/oss@hotschedules.com.key') if $0 =~ /gem\z/
+  gem.signing_key   = File.expand_path( ENV.key?('RUBYGEM_SIGNING_KEY') ? ENV['RUBYGEM_SIGNING_KEY'] : '~/certs/oss@hotschedules.com.key' ) if $0 =~ /\bgem[\.0-9]*\z/
   gem.cert_chain    = %w[certs/oss@hotschedules.com.cert]
 end
