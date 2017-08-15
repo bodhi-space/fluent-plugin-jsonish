@@ -46,6 +46,7 @@ module Fluent
       ]
       config_param :message_key, :string, :default => nil
       config_param :add_full_message, :bool, :default => false
+      config_param :remap_keys, :hash, :default => {}
 
       def initialize
         super
@@ -96,6 +97,7 @@ module Fluent
 
         @message_key = conf['message_key']
         @add_full_message = conf['add_full_message']
+        @remap_keys = conf['remap_keys']
 
       end
 
@@ -114,6 +116,15 @@ module Fluent
 
           if full_message
             record['full_message'] = full_message
+          end
+
+          @remap_keys.sort.map do |k,v|
+            if record.key?(k)
+              record[v] = record[k] unless v.nil?
+              record.delete(k)
+            else
+              record[v] = nil
+            end
           end
 
           yield time, record
