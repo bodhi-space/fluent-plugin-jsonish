@@ -6,7 +6,7 @@ module Fluent
       Plugin.register_parser('logstash', self)
 
       def configure(conf)
-        super(conf.update({ 'time_key' => '@timestamp'}))
+        super(conf.update({ 'time_key' => '@timestamp', 'remap_keys' => { '@version' => nil } }))
       end
 
       def parse(text)
