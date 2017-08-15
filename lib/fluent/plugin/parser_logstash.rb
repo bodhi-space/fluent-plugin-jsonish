@@ -14,9 +14,11 @@ module Fluent
           # Cannot be disabled in the library and serves no purpose,
           # since it never varies.
           record.delete('@version')
-          # Passing 'message_key' only duplicates the key to 'message' --
-          # it does not delete the original key (which is unneeded).
-          record.delete(@message_key)
+          unless @message_key.nil? or @message_key == 'message'
+            # Passing 'message_key' only duplicates the key to 'message' --
+            # it does not delete the original key (which is unneeded).
+            record.delete(@message_key)
+          end
           yield time, record
         end
       end
