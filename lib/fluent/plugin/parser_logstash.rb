@@ -9,7 +9,7 @@ module Fluent
         super(conf)
         @time_key = 'time'
         @message_key = 'msg'
-        @move_maps.update({ 'v' => nil, 'msg' => nil, 'hostname' => 'host' })
+        @move_keys.update({ 'v' => nil, 'msg' => nil, 'hostname' => 'host' })
       end
 
       def parse(text)
