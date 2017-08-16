@@ -1,4 +1,4 @@
-# jsonish, nginx_jsonish, and nodejs_bunyan parser plugins for Fluentd
+# jsonish, nginx_jsonish, nodejs_bunyan, and logstash parser plugins for Fluentd
 
 ## Overview
 The jsonish [parser plugin](http://docs.fluentd.org/articles/parser-plugin-overview) for fluentd.  It subclasses the JSONParser to allow for modifications to be made to input test before it is deserialized.  It subclasses the TimeParser to allow time format specifications using Ruby Time class method names instead of strftime format strings -- in particular, the iso8601 method.
@@ -29,6 +29,7 @@ gem install fluent-plugin-jsonish
   null_maps <how the patterns specified by null_pattern should be replaced>
   message_key <key to use for setting the 'message' key in the record>
   add_full_message <whether to the record 'full_message' key to the raw input>
+  move_keys <hash in JSON format, defaults to {}>
 </source>
 ```
 
@@ -38,6 +39,8 @@ gem install fluent-plugin-jsonish
 `time_format`: this will accept Time class method names (in particular, "iso8601") in addition to the strftime strings expected by the JsonParser clasee (String: default "iso8601")
 
 `maps`: an array containing "nulls", "slashes", or two-valued arrays containg (regex,replacement_text) pairs.  Defaults to [].
+
+`move_keys`: a hash specifying keys which should be moved after deseralization.  Each key should be the name of the key expected in the input JSON, and the corresponding value is the what the key needs to be in the record.  Use a null value to delete a key from the record.
 
 `null_pattern`: the pattern for how nulls are represented in the text.  Defaults to "-" (what nginx uses).
 
@@ -93,6 +96,20 @@ The fluentd parser configuration for this input is straight-forward:
 <source>
   type tail
   format nodejs_bunyan
+  path <application log file name>
+  [ standard parser or jsonish arguments ]
+</source>
+```
+
+### logstash
+This is a parser for inputs whicare in [Logstash](https://gist.github.com/jordansissel/2996677) format.  Only two keys are required in this format ("@timestamp" and "@version").  The parser automatically maps "@timestamp" to time.  Both the "@version" and "@timestamp" keys are deleted, since they are part of the Logstash event meta data, not actual event data.
+
+The fluentd parser configuration for this input is straight-forward:
+
+```
+<source>
+  type tail
+  format logstash
   path <application log file name>
   [ standard parser or jsonish arguments ]
 </source>
