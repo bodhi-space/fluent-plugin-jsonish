@@ -8,17 +8,17 @@ module Fluent
 
       def configure(conf)
 
-        if conf['maps'].is_a?(Array)
-          conf['maps'] = ([ 'slashes', 'nulls' ] + conf['maps']).uniq
+        if conf.key?('maps')
+          conf['maps'] = ([ 'slashes', 'nulls' ] + JSON.parse(conf['maps'])).uniq.to_json
         else
-          conf['maps'] = [ 'slashes', 'nulls' ]
-        end
-
-        if not (conf['message_key'] and conf['message_key'].is_empty?)
-          conf['message_key']  = 'request'
+          conf['maps'] = [ 'slashes', 'nulls' ].to_json
         end
 
         super(conf)
+
+        if @message_key.nil? or @message_key.empty?
+          @message_key = 'request'
+        end
 
       end
 

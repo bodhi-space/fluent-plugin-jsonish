@@ -94,9 +94,6 @@ module Fluent
           end
         end
 
-        @message_key = conf['message_key']
-        @add_full_message = conf['add_full_message']
-
       end
 
       def parse(text)
