@@ -46,6 +46,7 @@ module Fluent
       ]
       config_param :message_key, :string, :default => nil
       config_param :add_full_message, :bool, :default => false
+      config_param :move_keys, :hash, :default => {}
 
       def initialize
         super
@@ -94,9 +95,6 @@ module Fluent
           end
         end
 
-        @message_key = conf['message_key']
-        @add_full_message = conf['add_full_message']
-
       end
 
       def parse(text)
@@ -115,6 +113,11 @@ module Fluent
           if full_message
             record['full_message'] = full_message
           end
+
+          @move_keys.map do |k,v|
+            record[v] = record.delete(k)
+          end
+          record.delete(nil)
 
           yield time, record
         end
