@@ -64,7 +64,7 @@ module Fluent
 
         super(conf)
 
-        @time_parser = StdFormatTimeParser.new(tmp_time_format)
+        @parse = StdFormatTimeParser.new(tmp_time_format)
         @mutex = Mutex.new
 
         # This may look stupid (it actually is really stupid),
