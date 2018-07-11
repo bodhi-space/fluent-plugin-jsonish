@@ -14,20 +14,13 @@ module Fluent
       # * '%y-%m-%dT%H:%M:%S%Z' (no fractional seconds)
       # * '%y-%m-%dT%H:%M:%S.%L%Z' (fractional seconds)
 
-      def initialize(time_format)
+      def initialize(format)
 
-        if not time_format.nil? and time_format.empty?
-          # Set a reasonable default.
-          time_format = 'iso8601'
-        end
-
-        if not time_format.nil? and not /%/.match(time_format)
-          super(nil)
-
-          @parse = ->(v){ Fluent::EventTime.from_time(Time.method(time_format).call(v)) }
-
+        if not /%/.match(format)
+          super()
+          @parse = ->(v){ Fluent::EventTime.from_time(Time.method(format).call(v)) }
         else
-          super(time_format)
+          super(format)
         end
       end
     end
@@ -54,26 +47,38 @@ module Fluent
 
       def configure(conf)
 
-        if conf['time_format']
-          # Remove the time_format key before the super call
-          # so the it does as little as possible as possible
-          # (ie. less that we'll have to override).
-          tmp_time_format = conf['time_format']
-          conf.delete('time_format')
+        if conf['time_format'] and not conf['time_format'].nil?
+          # Remove the time_format key before the super call so
+          # the it does as little as possible as possible (ie.
+          # less that we'll have to override).
+          tmp_time_format = conf.delete('time_format')
+          # This has to be set to string when time_format is set.
+          # Deleting it without deleting time_type will leave an
+          # invalid configuration.
+          tmp_time_type = conf.delete('time_type')
         end
 
         super(conf)
 
-        @time_parser = StdFormatTimeParser.new(tmp_time_format)
+        # Overwrite the time parser unless the time_type is set
+        # to something other than string.
+        if not tmp_time_type.nil? and tmp_time_type == 'string'
+            @time_parser = StdFormatTimeParser.new(tmp_time_format)
+            # If these values are not restored, fluent will not
+            # show the value in trace/debug output.
+            conf['time_type'] = tmp_time_type
+            @time_type = tmp_time_type
+            conf['time_format'] = tmp_time_format
+            @time_format = tmp_time_format
+        elsif tmp_time_format.nil?
+            # The v1.0 time parser has a way to use the Time class
+            # method iso8601, but I would still to be able to access
+            # any available Time methods in a generic way.
+            @time_parser = StdFormatTimeParser.new('iso8601')
+            @time_type = 'string'
+            @time_format = 'iso8601'
+        end
         @mutex = Mutex.new
-
-        # This may look stupid (it actually is really stupid),
-        # but this *must* be set back to a non-null string
-        # prior to the return, since the superclass parser
-        # method checks for this and them implements its
-        # own ad hoc parser, in-line.  This is a necessary
-        # kludge to bypass a more egregious kludge.
-        @time_format = 'ignore_me'
 
         @transforms = []
 
