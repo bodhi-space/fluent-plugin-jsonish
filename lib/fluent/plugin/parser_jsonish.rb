@@ -24,7 +24,7 @@ module Fluent
         if not time_format.nil? and not /%/.match(time_format)
           super(nil)
 
-          @parser = Proc.new { |v| Time.method(time_format).call(v) }
+          @parse = ->(v){ Fluent::EventTime.from_time(Time.method(time_format).call(v)) }
 
         else
           super(time_format)
@@ -64,7 +64,7 @@ module Fluent
 
         super(conf)
 
-        @parse = StdFormatTimeParser.new(tmp_time_format)
+        @time_parser = StdFormatTimeParser.new(tmp_time_format)
         @mutex = Mutex.new
 
         # This may look stupid (it actually is really stupid),
