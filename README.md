@@ -3,6 +3,8 @@
 ## Notes
 Some of the functionality implemented by these plugins seems to now be availabe in the standard JSON parser for Fluentd 1.0.  I haven't fully checked how usable it may be for particular purposes, but these plugins may end up being abandoned if it turns out that they are no longer needed.  However, I have updated them so that they do work with Fluentd 1.0.  I haven't checked to ensure that the changes made for Fluentd are back-compatible with previous versions: the 2.x.x versions of this plugin now require Fluentd 1.0.
 
+It appears that Fluentd 1.0 has dropped support for inserting timestamp or tag data the output when using the JSON formatter.  A JSONish formatter has been added to this module, along with a trivial Logstash formatter to reimplement this functionality.
+
 ## Overview
 The jsonish [parser plugin](http://docs.fluentd.org/articles/parser-plugin-overview) for fluentd.  It subclasses the JSONParser to allow for modifications to be made to input test before it is deserialized.  It subclasses the TimeParser to allow time format specifications using Ruby Time class method names instead of strftime format strings -- in particular, the iso8601 method.
 :
@@ -21,7 +23,7 @@ gem install fluent-plugin-jsonish
 
 ## Configuration
 
-### jsonish
+### jsonish parser
 
 ```
 <source>
@@ -68,7 +70,21 @@ As an example, the nginx_jsonish subclasses the jsonish parser which really only
 
 The nodejs_bunyan plugin is similar in its behavior in setting needed defaults, although it also performs some needed processing after the JSON deserialization.
 
-### nginx_jsonish
+### jsonish formatter
+
+```<match **>
+  type file # any type which takes a format argument
+  format jsonish
+  add_time <hash with record time insertion configuration>
+  add_tag <hash with record tag insertion configuration>
+  [ fluent file output plugin configuration ]
+</match>
+```
+
+`add_time`: a hash specifying how the record timestamp should be inserted into the output JSON -- 'key' must be set to the name of the key to use in the output, with 'format' is the method name to convert to a string (defaults to 'iso8601(3)'
+`add_time`: a hash specifying how the record tag should be inserted into the output JSON -- 'key' must be set to the name of the key to use in the output, with 'format' is the method name to convert to a string (defaults to 'to_s'
+
+### nginx_jsonish parser
 The nginx configuration must be configured to output a "JSONish" format.  As mentioned above, a true JSON format cannot be reliably emitted using an nginx custom log format.  The "time" key, at a minimum, must be set with an ISO-8601 time stamp.  By default, the parser will look for a "request" key and set the "message" to this value.
 
   Something like the following is probably overkill for most, but it does work:
@@ -117,7 +133,7 @@ log_format extended  "{ \"time\": \"$msec\", \"proxy_http_x_forwarded_for\": \"$
 </source>
 ```
 
-### nodejs_bunyan
+### nodejs_bunyan parser
 This is a parser for Node.js applicatons which use [node-bunyan](https://github.com/trentm/node-bunyan) for logging.  It pretty much takes care of everything, including mapping the "level" from this format to standard [syslog severity levels](https://en.wikipedia.org/wiki/Syslog#Severity_level).
 
 The fluentd parser configuration for this input is straight-forward:
@@ -133,7 +149,7 @@ The fluentd parser configuration for this input is straight-forward:
 </source>
 ```
 
-### logstash
+### logstash parser
 This is a parser for inputs whicare in [Logstash](https://gist.github.com/jordansissel/2996677) format.  Only two keys are required in this format ("@timestamp" and "@version").  The parser automatically maps "@timestamp" to time.  Both the "@version" and "@timestamp" keys are deleted, since they are part of the Logstash event meta data, not actual event data.
 
 The fluentd parser configuration for this input is straight-forward:
@@ -148,3 +164,6 @@ The fluentd parser configuration for this input is straight-forward:
   </parse>
 </source>
 ```
+
+### logstash formatter
+This is a trivial subclass of the jsonish formatter which automatically sets 'add_key' to '{ "key": "@timestamp", "format": "iso8601(3)"}'.
